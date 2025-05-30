@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BBANG Token Minter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #512da8;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .container {
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 12px;
+    }
+    label, input, select, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    input[type="file"] {
+      padding: 0.5rem;
+    }
+    .status {
+      margin-top: 1rem;
+      color: green;
+    }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin: 1.5rem 0 1rem;
+    }
+    #drop-zone {
+      border: 2px dashed #aaa;
+      padding: 20px;
+      text-align: center;
+      color: #666;
+      margin-bottom: 1rem;
+    }
+    #preview {
+      display: none;
+      max-width: 100%;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BBANG Token Minter</h1>
+  </header>
+
+  <div class="container">
+    <button id="connect-button">Phantom 지갑 연결</button>
+    <p id="wallet-address"></p>
+
+    <form id="mintForm">
+      <label>Token Name</label>
+      <input type="text" id="name" required />
+
+      <label>Token Symbol</label>
+      <input type="text" id="symbol" required />
+
+      <label>Token Amount</label>
+      <input type="number" id="amount" required />
+
+      <div id="drop-zone">👉 여기로 이미지 파일을 드래그하거나 위에서 선택하세요.</div>
+      <img id="preview" />
+
+      <label>Token Image</label>
+      <input type="file" id="image" accept="image/*" required />
+
+      <button type="submit">토큰 발행하기 (0.04 ~ 0.05 SOL)</button>
+    </form>
+
+    <div class="section-title">권한이 있는 토큰 목록</div>
+    <select id="ownedTokens"></select>
+
+    <button id="mintMore">선택 토큰 추가 발행 (0.004 ~ 0.005 SOL)</button>
+    <button id="revoke">선택 토큰 민팅 권한 제거 (0.004 ~ 0.005 SOL)</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("mintForm");
+    const ownedTokens = document.getElementById("ownedTokens");
+    const mintMoreBtn = document.getElementById("mintMore");
+    const revokeBtn = document.getElementById("revoke");
+    const status = document.getElementById("status");
+    const connectBtn = document.getElementById("connect-button");
+    const walletAddr = document.getElementById("wallet-address");
+
+    let Transaction; 
+
+window.addEventListener("load", async () => {
+  if (window.solana && window.solana.isPhantom) {
+    Transaction = window.solanaWeb3.Transaction; 
+    try {
+      const resp = await window.solana.connect({ onlyIfTrusted: true });
+      userAddress = resp.publicKey.toString();
+      walletAddr.innerText = "지갑 주소: " + userAddress;
+      await fetchOwnedTokens(userAddress);
+    } catch (err) {
+      console.log("자동 연결 실패:", err.message);
+    }
+  }
+});
+
+
+    connectBtn.onclick = async () => {
+      if (window.solana && window.solana.isPhantom) {
+        try {
+          const alreadyConnected = userAddress !== null;
+          if (!alreadyConnected) {
+            const resp = await window.solana.connect();
+            userAddress = resp.publicKey.toString();
+            walletAddr.innerText = "지갑 주소: " + userAddress;
+            await fetchOwnedTokens(userAddress);
+
+            const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
+            const balance = await connection.getBalance(new solanaWeb3.PublicKey(userAddress));
+            if (balance < 0.05 * 1e9) {
+              alert("SOL 잔액이 부족합니다. 최소 0.05 SOL이 필요합니다.");
+              return;
+            }
+          } else {
+            walletAddr.innerText = "지갑 주소: " + userAddress + " (이미 연결됨)";
+          }
+        } catch (err) {
+          walletAddr.innerText = "지갑 연결 실패: " + err.message;
+        }
+      } else {
+        alert("Phantom 지갑을 설치해주세요.");
+      }
+    };
+
+    async function fetchOwnedTokens(pubkey) {
+      const res = await fetch(`/owned-tokens?wallet=${pubkey}`);
+      if (!res.ok) {
+        console.error("토큰 목록 요청 실패:", res.statusText);
+        return;
+      }
+      const tokens = await res.json();
+      ownedTokens.innerHTML = "";
+      if (tokens.length === 0) {
+        ownedTokens.innerHTML = '<option disabled selected>민팅 권한 토큰 없음</option>';
+      } else {
+        tokens.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          ownedTokens.appendChild(opt);
+        });
+      }
+    }
+
+    form.onsubmit = async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("name").value;
+  const symbol = document.getElementById("symbol").value;
+  const amount = document.getElementById("amount").value;
+  const imageFile = document.getElementById("image").files[0];
+
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("symbol", symbol);
+  formData.append("amount", amount);
+  formData.append("image", imageFile);
+  formData.append("user", userAddress);
+
+  try {
+    const res = await fetch("/mint", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "서버 오류 발생");
+    }
+
+    const result = await res.json();
+
+    if (result.tx) {
+      const txBuffer = Uint8Array.from(atob(result.tx), c => c.charCodeAt(0));
+      const tx = Transaction.from(txBuffer);
+      const signed = await window.solana.signAndSendTransaction(tx);
+      status.innerText = "트랜잭션 서명 완료: " + signed.signature;
+    } else {
+      status.innerText = result.message || "트랜잭션 생성 실패";
+    }
+  } catch (err) {
+    status.innerText = "🚫 오류 발생: " + err.message;
+  }
+};
+
+
+    mintMoreBtn.onclick = async () => {
+      const selected = ownedTokens.value;
+      const amount = prompt("추가 발행 수량은?");
+      const res = await fetch("/mint-more", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mint: selected, amount }),
+      });
+      const result = await res.json();
+      status.innerText = result.message || "추가 발행 완료";
+    };
+
+    revokeBtn.onclick = async () => {
+      const selected = ownedTokens.value;
+      const confirmRevoke = confirm("정말로 민팅 권한을 제거하시겠습니까? 되돌릴 수 없습니다.");
+      if (!confirmRevoke) return;
+
+      const res = await fetch("/revoke", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mint: selected }),
+      });
+      const result = await res.json();
+      status.innerText = result.message || "민팅 권한 제거 완료";
+    };
+  </script>
+
+  <script>
+    const dropZone = document.getElementById("drop-zone");
+    const imageInput = document.getElementById("image");
+
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = "#eee";
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.style.backgroundColor = "transparent";
+    });
+
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = "transparent";
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        imageInput.files = files;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const preview = document.getElementById("preview");
+          preview.src = reader.result;
+          preview.style.display = "block";
+        };
+        reader.readAsDataURL(files[0]);
+      }
+    });
+    imageInput.addEventListener("change", () => {
+  const file = imageInput.files[0];
+  if (file) {
+    const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("❌ 이 이미지 형식은 업로드할 수 없습니다.\n허용된 형식: PNG, JPG, WEBP");
+      imageInput.value = ""; // 입력 초기화
+      document.getElementById("preview").style.display = "none"; // 미리보기도 숨김
+    }
+  }
+});
+
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.3/lib/index.iife.min.js"></script>
+</body>
+</html>
