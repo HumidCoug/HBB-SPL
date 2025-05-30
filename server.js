@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
@@ -22,9 +23,8 @@ const {
   createMintToInstruction,
 } = require("@solana/spl-token");
 
-// ✅ Pinata API 키
-const PINATA_API_KEY = "6263f64e27a78221dfe9";
-const PINATA_SECRET_API_KEY = "67159b0518ba4e20d7a5794eb64522694a2d79bef34885a9bbbda30145689e64";
+const PINATA_API_KEY = process.env.PINATA_API_KEY;
+const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY;
 
 const app = express();
 const port = 3001;
@@ -32,14 +32,12 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
-// ✅ 프론트엔드 정적 경로
 const frontendPath = path.resolve(__dirname, "frontend");
 app.use(express.static(frontendPath));
 app.get("/", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// ✅ 이미지 업로드 필터
 const upload = multer({
   dest: "uploads/",
   fileFilter: (req, file, cb) => {
@@ -51,11 +49,9 @@ const upload = multer({
   },
 });
 
-// ✅ Solana Devnet 연결
 const connection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
 const FEE_WALLET = new PublicKey("AS1Zz2Hs2Rk35XPVPwpaUHtEANTEe9DKsC8yHQNjR6Gi");
 
-// ✅ 이미지 업로드 함수 (Pinata)
 async function uploadToIPFS(filePath, fileName) {
   const data = new FormData();
   data.append("file", fs.createReadStream(filePath), fileName);
@@ -69,7 +65,6 @@ async function uploadToIPFS(filePath, fileName) {
     },
   });
 
-  // ✅ 로컬 이미지 삭제
   fs.unlink(filePath, (err) => {
     if (err) console.error("파일 삭제 실패:", err.message);
     else console.log("✔ 업로드된 로컬 이미지 파일 삭제 완료");
@@ -78,7 +73,6 @@ async function uploadToIPFS(filePath, fileName) {
   return `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`;
 }
 
-// ✅ 메타데이터 JSON 업로드 (Pinata)
 async function uploadMetadataToIPFS(metadata) {
   const res = await axios.post("https://api.pinata.cloud/pinning/pinJSONToIPFS", metadata, {
     headers: {
@@ -89,7 +83,6 @@ async function uploadMetadataToIPFS(metadata) {
   return `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`;
 }
 
-// ✅ /mint 라우트
 app.post("/mint", upload.single("image"), async (req, res) => {
   try {
     const { name, symbol, amount, user } = req.body;
@@ -131,9 +124,7 @@ app.post("/mint", upload.single("image"), async (req, res) => {
     }));
 
     tx.add(createInitializeMintInstruction(mint.publicKey, 0, userPubkey, userPubkey));
-
     tx.add(createAssociatedTokenAccountInstruction(userPubkey, tokenATA, userPubkey, mint.publicKey));
-
     tx.add(createMintToInstruction(mint.publicKey, tokenATA, userPubkey, parseInt(amount)));
 
     tx.feePayer = userPubkey;
@@ -152,7 +143,6 @@ app.post("/mint", upload.single("image"), async (req, res) => {
   }
 });
 
-// ✅ 보유 토큰 확인
 app.get("/owned-tokens", async (req, res) => {
   const wallet = req.query.wallet;
   if (!wallet) return res.status(400).json({ message: "지갑 주소가 없습니다." });
@@ -173,7 +163,6 @@ app.get("/owned-tokens", async (req, res) => {
   }
 });
 
-// ✅ 서버 실행
 app.listen(port, () => {
-  console.log(`✅ Server ready at http://localhost:${port}`);
+  console.log(`Server ready at http://localhost:${port}`);
 });
