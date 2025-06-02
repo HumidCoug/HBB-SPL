@@ -22,6 +22,10 @@ const {
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
 } = require("@solana/spl-token");
+const {
+  PROGRAM_ID: METADATA_PROGRAM_ID,
+  createCreateMetadataAccountV3Instruction,
+} = require("@metaplex-foundation/mpl-token-metadata");
 
 const PINATA_API_KEY = process.env.PINATA_API_KEY;
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY;
@@ -53,24 +57,29 @@ const connection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
 const FEE_WALLET = new PublicKey("AS1Zz2Hs2Rk35XPVPwpaUHtEANTEe9DKsC8yHQNjR6Gi");
 
 async function uploadToIPFS(filePath, fileName) {
-  const data = new FormData();
-  data.append("file", fs.createReadStream(filePath), fileName);
+  try {
+    const data = new FormData();
+    data.append("file", fs.createReadStream(filePath), fileName);
 
-  const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", data, {
-    maxBodyLength: Infinity,
-    headers: {
-      "Content-Type": `multipart/form-data; boundary=${data._boundary}`,
-      pinata_api_key: PINATA_API_KEY,
-      pinata_secret_api_key: PINATA_SECRET_API_KEY,
-    },
-  });
+    const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", data, {
+      maxBodyLength: Infinity,
+      headers: {
+        "Content-Type": `multipart/form-data; boundary=${data._boundary}`,
+        pinata_api_key: PINATA_API_KEY,
+        pinata_secret_api_key: PINATA_SECRET_API_KEY,
+      },
+    });
 
-  fs.unlink(filePath, (err) => {
-    if (err) console.error("파일 삭제 실패:", err.message);
-    else console.log("✔ 업로드된 로컬 이미지 파일 삭제 완료");
-  });
+    fs.unlink(filePath, (err) => {
+      if (err) console.error("파일 삭제 실패:", err.message);
+      else console.log("✔ 업로드된 로컬 이미지 파일 삭제 완료");
+    });
 
-  return `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`;
+    return `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`;
+  } catch (err) {
+    console.error("❌ 이미지 업로드 실패:", err.response?.data || err.message);
+    throw err;
+  }
 }
 
 async function uploadMetadataToIPFS(metadata) {
@@ -109,12 +118,6 @@ app.post("/mint", upload.single("image"), async (req, res) => {
 
     const tx = new Transaction();
 
-    tx.add(SystemProgram.transfer({
-      fromPubkey: userPubkey,
-      toPubkey: FEE_WALLET,
-      lamports: 0.04 * 1e9,
-    }));
-
     tx.add(SystemProgram.createAccount({
       fromPubkey: userPubkey,
       newAccountPubkey: mint.publicKey,
@@ -126,7 +129,43 @@ app.post("/mint", upload.single("image"), async (req, res) => {
     tx.add(createInitializeMintInstruction(mint.publicKey, 0, userPubkey, userPubkey));
     tx.add(createAssociatedTokenAccountInstruction(userPubkey, tokenATA, userPubkey, mint.publicKey));
     tx.add(createMintToInstruction(mint.publicKey, tokenATA, userPubkey, parseInt(amount)));
+    const [metadataPDA] = await PublicKey.findProgramAddress(
+  [
+    Buffer.from("metadata"),
+    METADATA_PROGRAM_ID.toBuffer(),
+    mint.publicKey.toBuffer(),
+  ],
+  METADATA_PROGRAM_ID
+);
 
+const metadataIx = createCreateMetadataAccountV3Instruction(
+  {
+    metadata: metadataPDA,
+    mint: mint.publicKey,
+    mintAuthority: userPubkey,
+    payer: userPubkey,
+    updateAuthority: userPubkey,
+  },
+  {
+    createMetadataAccountArgsV3: {
+      data: {
+        name,
+        symbol,
+        uri: metadataURL,
+        sellerFeeBasisPoints: 0,
+        creators: null,
+        collection: null,
+        uses: null,
+      },
+      isMutable: false,
+      collectionDetails: null,
+    },
+  }
+);
+
+tx.add(metadataIx);
+
+    console.log("🪙 생성된 Mint 주소:", mint.publicKey.toBase58());
     tx.feePayer = userPubkey;
     tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     tx.partialSign(mint);
