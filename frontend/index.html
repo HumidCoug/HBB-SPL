@@ -3,12 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BBANG Token Minter</title>
+   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+  <title>HBB SPL TOKEN MINTER</title>
   <style>
-    body {
+    @font-face {
+  font-family: 'DNFBitBit';
+  src: url('./fonts/DNFBitBitv2.ttf') format('truetype');
+}
+  @font-face {
+  font-family: 'Galmuri';
+  src: url('./fonts/Galmuri14.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+    body
+    {
       margin: 0;
-      font-family: sans-serif;
-      background: url('3.png') no-repeat center center fixed;
+            font-family: 'Galmuri', sans-serif;
+      background: url('111.jpg') no-repeat center center fixed;
       background-size: cover;
       display: flex;
       justify-content: center;
@@ -20,17 +32,15 @@
       z-index: 0;
     }
     body::after {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: url('3.png') no-repeat center center fixed;
-      background-size: cover;
-      filter: contrast(150%) brightness(90%);
-      mix-blend-mode: multiply;
-      opacity: 0.3;
-      pointer-events: none;
-      z-index: -1;
-    }
+          content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.25); 
+  backdrop-filter: blur(1.75px);           
+  -webkit-backdrop-filter: blur(1.75px);  
+  z-index: -1;
+  pointer-events: none;
+}
     .wrapper {
       display: flex;
       flex-direction: row;
@@ -39,44 +49,70 @@
       max-width: 1600px;
       width: 98vw;
       gap: 80px;
-      flex-wrap: nowrap;
+           flex-wrap: wrap;
       height: 100%;
     }
-    .panel {
+    .panel 
+    
+    {
+      
       flex: 1 1 400px;
       min-width: 400px;
       max-width: 700px;
-      background: rgba(255, 255, 255, 0.15);
+           background: rgba(143, 129, 129, 0.2);
       background-image: url('noise_2.png'), url('noise_2.png');
       background-size: 100px;
       background-repeat: repeat;
       background-blend-mode: overlay;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(7.5px);
+      -webkit-backdrop-filter: blur(7.5px);
+      border: 1px solid rgba(0, 0, 0, 0.4);
       border-radius: 25px;
-      box-shadow: 12.5px 12.5px 20px 5px rgba(0, 0, 0, 0.275);
+           box-shadow: 5px 10px 20px 5px rgba(0, 0, 0, 0.8);
       padding: 30px;
       box-sizing: border-box;
       min-height: 75vh;
       transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
     .panel:hover {
-      box-shadow: 5px 10px 20px 5px rgba(0, 0, 0, 0.4);
+             box-shadow: 5px 10px 20px 5px rgba(0, 0, 0, 1.5);
       transform: translateY(-5px);
     }
     @media (max-width: 768px) {
-      .wrapper {
-        flex-direction: column;
-        align-items: stretch;
-        height: auto;
-        padding: 80px 20px 20px;
-      }
-      .panel {
-        min-height: 650px;
-        margin-bottom: 60px;
-      }
-    }
+         .wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+    padding: 40px 16px;
+  }
+
+  .panel {
+    min-width: auto;
+    width: 100%;
+    max-width: 93%;
+    margin: 0 auto 20px;
+    min-height: auto;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .panel * {
+    font-size: 90%;
+  }
+
+  h2 {
+    font-size: 1.75rem !important;
+  }
+
+  input, button, select {
+    font-size: 90%;
+    padding: 10px;
+  }
+
+  #drop-zone {
+    height: 140px;
+  }
+}
     input, button, select, label {
       display: block;
       width: 100%;
@@ -88,71 +124,299 @@
       text-align: center;
       color: #666;
       margin-bottom: 1rem;
+        display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 160px;
+  overflow: hidden;
+  position: relative;
     }
     #preview {
-      display: none;
-      max-width: 100%;
-      margin-top: 1rem;
+          display: none;
+  max-width: 100%;
+  max-height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  object-fit: contain;
     }
     .status {
       margin-top: 1rem;
       color: green;
     }
+    input[type="file"]::file-selector-button {
+  font-family: 'Galmuri', sans-serif;
+  font-size: 14px;
+  color: #000000;
+  background-color: #ffffff;
+  border: 1px solid #ffffff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+    input[type="file"] {
+  font-family: 'Galmuri', sans-serif;
+  font-size: 14px;
+  color: #fff;
+}
+
+.site-banner {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 30px;
+  font-size: 3.5rem;
+  font-size: clamp(1.5rem, 6vw, 3.5rem);
+  font-family: 'DNFBitBit', sans-serif;
+  color: #ffffff;
+  white-space: nowrap;
+  border-radius: 16px;
+    text-shadow:
+    0 0 2px #fff,
+    0 0 6px #fff,
+    0 0 12px #ff0000,
+    0 0 30px #ff01b3;
+  user-select: none;
+  pointer-events: none;
+}
+
   </style>
 </head>
 <body>
+  <div class="site-banner">HBB SPL TOKEN MINTER</div>
   <div class="wrapper">
-    <div class="panel">
-      <button id="connect-button">Phantom 지갑 연결</button>
-      <p id="wallet-address"></p>
+      <div class="panel">
+<h2 style="
+  margin-top: 0;
+  font-size: 2.5rem;
+  font-weight: normal;
+  color: #141414;
+  font-family: 'DNFBitBit', sans-serif;
+  letter-spacing: 0.05em;
+    text-align: center;
+    text-shadow: 
+  -0.75px -0.75px 0 white,
+   0      -0.75px 0 white,
+   0.75px -0.75px 0 white,
+  -0.75px  0      0 white,
+   0.75px  0      0 white,
+  -0.75px  0.75px 0 white,
+   0       0.75px 0 white,
+   0.75px  0.75px 0 white;
+"> 토큰 발행</h2>
+    <button id="connect-button" style="
+  padding: 15px 20px;
+  background-color: white;
+  color: #222;
+  font-weight: 600;
+  font-family: 'Galmuri', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 60%;
+  transition: background 0.2s;
+">
+  Phantom 지갑 연결
+</button>
 
-      <form id="mintForm">
-        <label>토큰 이름</label>
-        <input
-  type="text"
-  id="name"
-  maxlength="32"
-  required
-  placeholder="최대 32자까지 입력 가능합니다." />
-        
+    <p id="wallet-address" style="font-size: 0.9rem; color: #666; margin: 12px 0 20px;"></p>
 
-        <label>토큰 심볼</label>
-        <input
-  type="text"
-  id="symbol"
-  maxlength="10"
-  required
-  placeholder="최대 10자까지 입력 가능합니다." />
+    <form id="mintForm">
+      <label for="name" style="
+  font-size: 18.5px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow:
+    -0.75px -0.75px 0 black,
+     0      -0.75px 0 black,
+     0.75px -0.75px 0 black,
+    -0.75px  0      0 black,
+     0.75px  0      0 black,
+    -0.75px  0.75px 0 black,
+     0       0.75px 0 black,
+     0.75px  0.75px 0 black;
+">토큰 이름</label>
+      <input type="text" id="name" maxlength="32" required placeholder="최대 32자까지 입력 가능" style="padding: 10px; border: 1px solid #cccccc; border-radius: 6px; margin-bottom: 1rem; width: 96%;" />
 
-        <label>토큰 발행 수</label>
-        <input
-  type="number"
-  id="amount"
-  min="1"
-  step="1"
-  required
-  placeholder="숫자를 입력해주세요." />
+      <label for="name" style="
+  font-size: 18.5px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow:
+    -0.75px -0.75px 0 black,
+     0      -0.75px 0 black,
+     0.75px -0.75px 0 black,
+    -0.75px  0      0 black,
+     0.75px  0      0 black,
+    -0.75px  0.75px 0 black,
+     0       0.75px 0 black,
+     0.75px  0.75px 0 black;
+">토큰 심볼</label>
+      <input type="text" id="symbol" maxlength="10" required placeholder="최대 10자까지 입력 가능" style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1rem; width: 96%;" />
 
-        <div id="drop-zone">👉 여기로 이미지 파일을 드래그하거나 위에서 선택하세요.</div>
-        <img id="preview" />
+      <label for="name" style="
+  font-size: 18.5px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow:
+    -0.75px -0.75px 0 black,
+     0      -0.75px 0 black,
+     0.75px -0.75px 0 black,
+    -0.75px  0      0 black,
+     0.75px  0      0 black,
+    -0.75px  0.75px 0 black,
+     0       0.75px 0 black,
+     0.75px  0.75px 0 black;
+">토큰 발행 수량</label>
+      <input type="number" id="amount" min="1" step="1" required placeholder="숫자를 입력해주세요" style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1rem; width: 96%;" />
 
-        <label>토큰 이미지</label>
-        <input type="file" id="image" accept="image/*" required />
+      <label for="image" style="
+  font-size: 18.5px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow:
+    -0.75px -0.75px 0 black,
+     0      -0.75px 0 black,
+     0.75px -0.75px 0 black,
+    -0.75px  0      0 black,
+     0.75px  0      0 black,
+    -0.75px  0.75px 0 black,
+     0       0.75px 0 black,
+     0.75px  0.75px 0 black;
+">토큰 이미지</label>
+<div id="drop-zone" style="
+  border: 2px dashed #ccc;
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+">
+  👉 이미지 파일을 드래그하거나 선택하세요
+  <img id="preview" style="
+    display: none;
+    max-width: 100%;
+    max-height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    object-fit: contain;
+  " />
+  <button id="remove-image" style="
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-weight: bold;
+    cursor: pointer;
+  ">×</button>
+</div>
+<input type="file" id="image" accept="image/*" required style="margin-bottom: 1rem;" />
+<button type="submit" style="
+  padding: 12px;
+  background-color: white;
+  color: #222;
+  font-weight: 600;
+  font-family: 'Galmuri', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+">
+  토큰 발행하기 (~ 0.05 SOL)
+</button>
 
-        <button type="submit">토큰 발행하기 ( ~ 0.05 SOL)</button>
-      </form>
-    </div>
-
-    <div class="panel">
-      <div class="section-title">권한이 있는 토큰 목록</div>
-      <select id="ownedTokens"></select>
-
-      <button id="mintMore">선택 토큰 추가 발행 (0.004 ~ 0.005 SOL)</button>
-      <button id="revoke">선택 토큰 민팅 권한 제거 (0.004 ~ 0.005 SOL)</button>
-
-      <div class="status" id="status"></div>
-    </div>
+    </form>
   </div>
+
+  <div class="panel">
+<h2 style="
+  margin-top: 0;
+  font-size: 2.5rem;
+  font-weight: normal;
+  color: #141414;
+  font-family: 'DNFBitBit', sans-serif;
+  letter-spacing: 0.05em;
+    text-align: center;
+    text-shadow: 
+  -0.75px -0.75px 0 white,
+   0      -0.75px 0 white,
+   0.75px -0.75px 0 white,
+  -0.75px  0      0 white,
+   0.75px  0      0 white,
+  -0.75px  0.75px 0 white,
+   0       0.75px 0 white,
+   0.75px  0.75px 0 white;
+"> 보유 토큰 관리 </h2>
+
+    <label for="name" style="
+  font-size: 18.5px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow:
+    -0.75px -0.75px 0 black,
+     0      -0.75px 0 black,
+     0.75px -0.75px 0 black,
+    -0.75px  0      0 black,
+     0.75px  0      0 black,
+    -0.75px  0.75px 0 black,
+     0       0.75px 0 black,
+     0.75px  0.75px 0 black;
+">권한이 있는 토큰 목록</label>
+    <select id="ownedTokens" style="width: 100%; padding: 10px; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #ccc; background-color: #fff; color: #333;"></select>
+
+<button id="mintMore" style="
+  padding: 14px 20px;
+  background-color: white;
+  color: #222;
+  font-weight: 600;
+  font-family: 'Galmuri', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 10px;
+">
+  선택 토큰 추가 발행 (0.004 ~ 0.005 SOL)
+</button>
+
+<button id="revoke" style="
+  padding: 14px 20px;
+  background-color: white;
+  color: #222;
+  font-weight: 600;
+  font-family: 'Galmuri', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+">
+  선택 토큰 민팅 권한 제거 (0.004 ~ 0.005 SOL)
+</button>
+
+
+    <div class="status" id="status" style="margin-top: 1.5rem; color: #333; font-weight: 500;"></div>
+  </div>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.3/lib/index.iife.min.js"></script>
 
@@ -316,6 +580,51 @@
   });
 
   imageInput.addEventListener("change", () => {
+      const dropZone = document.getElementById("drop-zone");
+  const imageInput = document.getElementById("image");
+  const preview = document.getElementById("preview");
+  const removeBtn = document.getElementById("remove-image");
+
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.style.backgroundColor = "#eee";
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.style.backgroundColor = "#f9f9f9";
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.style.backgroundColor = "#f9f9f9";
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      imageInput.files = files;
+      displayPreview(files[0]);
+    }
+  });
+
+  imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+    if (file) displayPreview(file);
+  });
+
+  removeBtn.addEventListener("click", () => {
+    preview.src = "";
+    preview.style.display = "none";
+    removeBtn.style.display = "none";
+    imageInput.value = "";
+  });
+
+  function displayPreview(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      preview.src = reader.result;
+      preview.style.display = "block";
+      removeBtn.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
     const file = imageInput.files[0];
     if (file) {
       const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
